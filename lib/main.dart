@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_playground/colors.dart';
 import 'package:palette_generator/palette_generator.dart';
 
 void main() {
@@ -39,19 +40,16 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     contents = [
-      PageContent("Joker", "Joker Descr",
-          "https://www.uncommoncaribbean.com/wp-content/uploads/2017/01/Saint-Martin-Carnival-2016.jpg"),
-      PageContent("Black Panther", "Joker Descr",
-          "https://img.huffingtonpost.com/asset/5b9cc1a83c00004c0009e2a5.jpeg?ops=scalefit_960_noupscale"),
-      PageContent("Good Boys", "Joker Descr",
-          "https://i.pinimg.com/originals/d4/d5/f5/d4d5f5961e91de9a31be1b67663710d2.jpg"),
+      PageContent("good kid, M.A.A.D city", "Joker Descr",
+          "https://media.s-bol.com/rmGWLX11onYk/550x550.jpg"),
+      PageContent("My Beautiful Dark Twisted Fantasy", "Joker Descr",
+          "https://media.s-bol.com/n55M2gW7yLYR/550x550.jpg"),
+      PageContent("2014 Forest Hills Drive", "Joker Descr",
+          "https://media.s-bol.com/g1yQDMpmXV6/1166x1200.jpg"),
     ];
 
     _controller.addListener(() {
-      double totalWidth = MediaQuery
-          .of(context)
-          .size
-          .width;
+      double totalWidth = MediaQuery.of(context).size.width;
       _controllerBg.jumpTo(_controller.page * totalWidth);
     });
   }
@@ -89,8 +87,7 @@ class MainPageView extends StatelessWidget {
     Key key,
     @required PageController controller,
     @required this.contents,
-  })
-      : _controller = controller,
+  })  : _controller = controller,
         super(key: key);
 
   final PageController _controller;
@@ -138,41 +135,66 @@ class NiceCard extends StatefulWidget {
 }
 
 class _NiceCardState extends State<NiceCard> {
-  Color mainColor = Colors.white;
+  Color _mainColor = Colors.white, _textColor = Colors.black;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _updatePalettes();
   }
 
-
-  void _updatePalettes() async{
-    var generator = await PaletteGenerator.fromImageProvider(NetworkImage(widget.page.bg));
+  void _updatePalettes() async {
+    PaletteGenerator generator = await ColorLoader.getColor(widget.page.bg);
 
     setState(() {
-//      mainColor= generator.dominantColor.color;
+      _mainColor = generator.dominantColor.color;
+      _textColor = generator.vibrantColor.bodyTextColor;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(50),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
           color: Colors.white,
-          child: Column(
-            children: <Widget>[
-              "".text,
-             AnimatedContainer(
-                color: mainColor,
-                duration: Duration(seconds: 1),
-                height: 200,
-                width: double.infinity,
-              ),
-            ],
-          )
-      ),
+          child: Padding(
+            padding: const EdgeInsets.all(25.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Column(
+                  children: [
+                    Image.network(widget.page.bg),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      widget.page.title,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headline5,
+                    ),
+                  ],
+                ),
+                RaisedButton(
+                  child: Text(
+                    "About album",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText1
+                        .copyWith(color: _textColor),
+                  ),
+                  color: _mainColor,
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          )),
     );
   }
 }
@@ -183,8 +205,7 @@ class BgPageView extends StatelessWidget {
     @required PageController controllerBg,
     @required this.contents,
     @required PageController controller,
-  })
-      : _controllerBg = controllerBg,
+  })  : _controllerBg = controllerBg,
         _controller = controller,
         super(key: key);
 
@@ -194,10 +215,7 @@ class BgPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double totalWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    double totalWidth = MediaQuery.of(context).size.width;
 
     return Stack(
       children: <Widget>[
@@ -206,53 +224,52 @@ class BgPageView extends StatelessWidget {
           physics: NeverScrollableScrollPhysics(),
           pageSnapping: false,
           children: contents
-              .map((c) =>
-              Stack(
-                children: <Widget>[
-                  AnimatedBuilder(
-                    animation: _controllerBg,
-                    child: SizedBox.expand(
-                      child: Image.network(
-                        c.bg,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    builder: (context, child) {
-                      var page = _controller.page ?? 0;
-                      int cur = page.floor();
-                      double progression = page - cur;
-                      return Stack(
-                        children: <Widget>[
-                          Transform.translate(
-                            offset: Offset(
-                                -totalWidth + progression * totalWidth, 0),
-                            child: Transform.translate(
-                              offset: Offset(
-                                -totalWidth + totalWidth * progression,
-                                0,
-                              ),
-                              child: ClipRect(
+              .map((c) => Stack(
+                    children: <Widget>[
+                      AnimatedBuilder(
+                        animation: _controllerBg,
+                        child: SizedBox.expand(
+                          child: Image.network(
+                            c.bg,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        builder: (context, child) {
+                          var page = _controller.page ?? 0;
+                          int cur = page.floor();
+                          double progression = page - cur;
+                          return Stack(
+                            children: <Widget>[
+                              Transform.translate(
+                                offset: Offset(
+                                    -totalWidth + progression * totalWidth, 0),
                                 child: Transform.translate(
                                   offset: Offset(
-                                      totalWidth - progression * totalWidth,
-                                      0),
+                                    -totalWidth + totalWidth * progression,
+                                    0,
+                                  ),
+                                  child: ClipRect(
+                                    child: Transform.translate(
+                                      offset: Offset(
+                                          totalWidth - progression * totalWidth,
+                                          0),
+                                      child: child,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Transform.translate(
+                                offset: Offset(totalWidth * progression, 0),
+                                child: ClipRect(
                                   child: child,
                                 ),
                               ),
-                            ),
-                          ),
-                          Transform.translate(
-                            offset: Offset(totalWidth * progression, 0),
-                            child: ClipRect(
-                              child: child,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ))
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ))
               .toList(),
         ),
         Align(
@@ -261,9 +278,11 @@ class BgPageView extends StatelessWidget {
             height: 500,
             width: totalWidth,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
+              gradient: RadialGradient(
+                // begin: Alignment.bottomCenter,
+                // end: Alignment.topCenter,
+                radius: 1,
+                center: Alignment.bottomCenter,
                 colors: [
                   Colors.white,
                   Colors.white,
